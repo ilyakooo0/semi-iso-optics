@@ -64,6 +64,7 @@ module Control.Lens.SemiIso (
     unit,
     swapped,
     associated,
+    morphed,
     constant,
     exact,
     bifiltered,
@@ -101,6 +102,7 @@ import Control.Category
 import Control.Category.Structures
 import Control.Lens.Internal.SemiIso
 import Control.Lens.Iso
+import Control.Tuple.Morph
 import Data.Foldable
 import Data.Functor.Identity
 import Data.Profunctor.Exposed
@@ -219,6 +221,14 @@ unit = iso (, ()) fst
 -- | Products are associative.
 associated :: Iso' (a, (b, c)) ((a, b), c)
 associated = iso (\(a, (b, c)) -> ((a, b), c)) (\((a, b), c) -> (a, (b, c)))
+
+-- | An isomorphism between two arbitrary nested tuples, as long the contained
+-- types (ignoring units!) read from left to right are the same.
+--
+-- This is implemented using 'Data.Tuple.Morph.morph' from 'tuple-morph'.
+morphed :: (TupleMorphable a c, TupleMorphable b c)
+        => Iso' a b
+morphed = iso morphTuples morphTuples
 
 -- | \-> Always returns the argument.
 --
