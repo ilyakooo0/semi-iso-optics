@@ -21,7 +21,7 @@ module Control.SIArrow (
     (#>>), (>>#), (#<<), (<<#),
 
     -- * Functor and applicative.
-    (/$/), (/$~), (/*/), (/*), (*/),
+    (/$/), (/$~), (/$<~>), (/*/), (/*), (*/),
 
     -- * Signaling errors.
     sifail, (/?/),
@@ -153,6 +153,18 @@ a <<# f = a . sipure f
 (/$~) :: (SIArrow cat, TupleMorphable b u, TupleMorphable b' u)
        => ASemiIso' a b' -> cat c b -> cat c a
 ai /$~ h = cloneSemiIso ai . morphed /$/ h
+
+-- | Like @/$~@ but also reorders elements if uniquely defined.
+(/$<~>)
+    :: (  SIArrow cat
+        , TupleMorphable b u
+        , TupleMorphable b' v
+        , ReorderList u v
+        , ReorderList v u
+        , CheckListsForTupleIso u v
+        , CheckListsForTupleIso v u)
+       => ASemiIso' a b' -> cat c b -> cat c a
+ai /$<~> h = cloneSemiIso ai . reorderMorphed /$/ h
 
 -- | The product of two arrows with duplicate units removed. Side effect are
 -- sequenced from left to right.

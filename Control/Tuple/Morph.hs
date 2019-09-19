@@ -20,15 +20,49 @@
 
 module Control.Tuple.Morph
     ( morphTuples
+    , morphReorderTuples
+    , morphPickTuples
     , TupleMorphable
+    , CheckListsForTupleIso
+    , ReorderList
     ) where
 
 import Data.Proxy
 import GHC.Generics
+import GHC.TypeLits hiding (Nat)
+import Data.Kind
 
 
 morphTuples :: (TupleMorphable a c, TupleMorphable b c) => a -> b
 morphTuples = morph . unmorph
+
+morphPickTuples
+    ::  ( TupleMorphable a b
+        , TupleMorphable c d
+        , ReorderList b d )
+    => a
+    -> c
+morphPickTuples = morph . hReorder Proxy . unmorph
+
+type CheckListsForTupleIso b d
+    = EqOrError (Length b) (Length d)
+        ('Text "Not isomorphic tuple contents:"
+            ':$$: 'Text "    " ':<>: 'ShowType b
+            ':$$: 'Text "    " ':<>: 'ShowType d)
+
+morphReorderTuples
+    ::  ( TupleMorphable a b
+        , TupleMorphable c d
+        , ReorderList b d
+        , CheckListsForTupleIso b d)
+    => a
+    -> c
+morphReorderTuples = morph . hReorder Proxy . unmorph
+
+type family EqOrError a b e :: Constraint where
+    EqOrError a a _ = a ~ a
+    EqOrError _ _ e = TypeError e
+
 
 -- # Nat
 
@@ -95,6 +129,51 @@ instance
     , ((a ': aa) ++ bb) ~ (a ': cc))
     => AppendableList (a ': aa) bb (a ': cc) where
     (a :+ aa) ++: bb = a :+ (aa ++: bb)
+
+-- ## Finding
+
+class FindableList ts t where
+    hFind :: HList ts -> t
+
+instance {-# OVERLAPPING #-}
+    (NotFindableList ts t)
+    => FindableList (t ': ts) t where
+    hFind (t :+ _) = t
+
+instance
+    (TEq a t ~ 'False, FindableList ts a)
+    => FindableList (t ': ts) a where
+    hFind (_ :+ ts) = hFind ts
+
+instance
+    (TypeError
+        ('Text "Could not find type " ':<>: 'ShowType a ':<>: 'Text " in tuple."))
+    => FindableList '[] a where
+    hFind = error "oh no"
+
+class NotFindableList ts t
+
+instance {-# OVERLAPPING #-}
+    (TypeError
+        ('Text "Type " ':<>: 'ShowType t ':<>: 'Text " is not unique in tuple."))
+    => NotFindableList (t ': ts) t
+
+instance (NotFindableList ts a) => NotFindableList (t ': ts) a
+
+instance NotFindableList '[] a
+
+class ReorderList as bs where
+    hReorder :: Proxy bs -> HList as -> HList bs
+
+instance (FindableList as b, ReorderList as bs) => ReorderList as (b ': bs) where
+    hReorder _ as = hFind as :+ hReorder (Proxy @bs) as
+
+instance ReorderList as '[] where
+    hReorder _ _ = HNil
+
+type family TEq a b :: Bool where
+    TEq a a = 'True
+    TEq a b = 'False
 
 -- ## Other
 
