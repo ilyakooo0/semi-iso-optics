@@ -20,7 +20,6 @@ description:         Please see the README on GitHub at <https://github.com/ilya
 dependencies:
 - base >= 4.7 && < 5
 - profunctors
-- transformers
 - lens
 - semigroupoids
 
@@ -33,6 +32,7 @@ library:
   - Control.Category.Reader
   - Control.Category.Structures
   - Data.Profunctor.Exposed
+  - Control.Tuple.Morph
   ghc-options:
   - -Wall
   - -Wincomplete-uni-patterns

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9fe627e0673c25d1622d6bbc274fa58649b56cc4796f5b740e346f1496b40f1a
+-- hash: e39d80118de6342b08c20171ef3da66dbed53cc23732bf8f8bf6ea05410b9976
 
 name:           semi-iso
 version:        0.1.0.0
@@ -30,6 +30,7 @@ library
       Control.Category.Reader
       Control.Category.Structures
       Data.Profunctor.Exposed
+      Control.Tuple.Morph
   other-modules:
       Paths_semi_iso
   hs-source-dirs:
@@ -40,5 +41,4 @@ library
     , lens
     , profunctors
     , semigroupoids
-    , transformers
   default-language: Haskell2010
