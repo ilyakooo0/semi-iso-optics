@@ -10,7 +10,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Install Stack
-    - run: |
+      run: |
         wget -qO- https://get.haskellstack.org/ | sh
 #     - name: Install dependencies
 #       run: cabal install --only-dependencies --enable-tests
