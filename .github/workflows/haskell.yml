@@ -4,7 +4,7 @@ on: [pull_request]
 
 jobs:
   build:
-   
+
     runs-on: ubuntu-latest
 
     steps:
@@ -12,10 +12,11 @@ jobs:
     - name: Install Stack
       run: |
         wget -qO- https://get.haskellstack.org/ | sh
-#     - name: Install dependencies
-#       run: cabal install --only-dependencies --enable-tests
+
     - name: Build
       run: |
-        stack build --fast --pedantic
-#     - name: Run tests
-#       run: cabal test
+        stack build --fast --pedantic --ghc-options '-j'
+
+    - name: Weeder
+      run: |
+        curl -sSL https://raw.github.com/ndmitchell/weeder/master/misc/run.sh | sh -s . --build
