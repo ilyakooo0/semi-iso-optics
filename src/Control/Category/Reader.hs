@@ -15,6 +15,7 @@ module Control.Category.Reader (
     ReaderCT(..)
     ) where
 
+import Control.Arrow
 import Control.Category
 import Control.Category.Structures
 import Control.Lens.Iso
@@ -31,15 +32,18 @@ instance Category cat => Category (ReaderCT env cat) where
     id = clift id
     ReaderCT f . ReaderCT g = ReaderCT $ \x -> f x . g x
 
-instance Products cat => Products (ReaderCT env cat) where
+instance Arrow cat => Arrow (ReaderCT env cat) where
+    arr f = ReaderCT $ \_ -> arr f
     ReaderCT f *** ReaderCT g = ReaderCT $ \x -> f x *** g x
 
-instance Coproducts cat => Coproducts (ReaderCT env cat) where
+instance ArrowChoice cat => ArrowChoice (ReaderCT env cat) where
     ReaderCT f +++ ReaderCT g = ReaderCT $ \x -> f x +++ g x
 
-instance CatPlus cat => CatPlus (ReaderCT env cat) where
-    cempty = clift cempty
-    ReaderCT f /+/ ReaderCT g = ReaderCT $ \x -> f x /+/ g x
+instance ArrowZero cat => ArrowZero (ReaderCT env cat) where
+    zeroArrow = clift zeroArrow
+
+instance ArrowPlus cat => ArrowPlus (ReaderCT env cat) where
+    ReaderCT f <+> ReaderCT g = ReaderCT $ \x -> f x <+> g x
 
 instance SIArrow cat => SIArrow (ReaderCT env cat) where
     siarr = clift . siarr
