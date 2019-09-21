@@ -16,7 +16,7 @@
     FlexibleContexts
     #-}
 
-{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
+{-# OPTIONS_GHC -Wno-incomplete-patterns -Wno-redundant-constraints #-}
 
 module Control.Tuple.Morph
     ( morphTuples

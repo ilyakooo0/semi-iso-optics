@@ -9,7 +9,9 @@ License     :  MIT
 Maintainer  :  Paweł Nowak <pawel834@gmail.com>
 Stability   :  experimental
 -}
-module Control.Lens.Internal.SemiIso where
+module Control.Lens.Internal.SemiIso
+    ( Retail(..)
+    ) where
 
 import Control.Monad
 import Data.Profunctor
@@ -25,9 +27,9 @@ instance Profunctor (Retail s t) where
     rmap f (Retail l r) = Retail l (fmap f . r)
 
 instance Choice (Retail s t) where
-    left' (Retail as st) = Retail 
+    left' (Retail as st) = Retail
         (either as (\_ -> Left "semi-iso failed")) (fmap Left . st)
-    right' (Retail as st) = Retail 
+    right' (Retail as st) = Retail
         (either (\_ -> Left "semi-iso failed") as) (fmap Right . st)
 
 -- Proof of 'Exposed' laws:

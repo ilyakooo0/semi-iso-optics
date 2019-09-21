@@ -15,7 +15,12 @@ way then "Control.Arrow".
 
 Unfortunately names in this module clash with "Control.Arrow".
 -}
-module Control.Category.Structures where
+module Control.Category.Structures
+    ( Products(..)
+    , Coproducts(..)
+    , CatPlus(..)
+    , CatTrans(..)
+    ) where
 
 import           Control.Arrow (Kleisli(..))
 import qualified Control.Arrow as BadArrow
