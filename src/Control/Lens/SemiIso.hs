@@ -4,6 +4,8 @@
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE FlexibleContexts #-}
+
+{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 {- |
 Module      :  Control.Lens.SemiIso
 Description :  Semi-isomorphisms.
@@ -133,6 +135,10 @@ type ASemiIso' s a = ASemiIso s s a a
 
 -- | A nice pattern synonym for SemiIso's. Gives you the two functions, just like
 -- 'viewSemiIso' or 'fromSemiIso'.
+pattern SemiIso
+    :: (s -> Either String a)
+    -> (b -> Either String t)
+    -> ASemiIso s t a b
 pattern SemiIso sa bt <- (viewSemiIso -> (sa, bt))
 
 -- | A semi-iso stored in a container.
