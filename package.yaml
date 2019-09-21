@@ -1,0 +1,45 @@
+name:                semi-iso
+version:             0.1.0.0
+github:              "ilyakooo0/semi-iso-optics"
+license:             MIT
+author:              "Ilya Kostyuchenko"
+maintainer:          "ilyakooo0@gmail.com"
+copyright:           "2019 Ilya Kostyuchenko, 2014 Paweł Nowak"
+
+extra-source-files: []
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/ilyakooo0/semi-iso-optics#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+- profunctors
+- transformers
+- lens
+- semigroupoids
+
+library:
+  source-dirs: src
+  exposed-modules:
+  - Control.Lens.SemiIso
+  - Control.Lens.Internal.SemiIso
+  - Control.SIArrow
+  - Control.Category.Reader
+  - Control.Category.Structures
+  - Data.Profunctor.Exposed
+  ghc-options:
+  - -Wall
+  - -Wincomplete-uni-patterns
+  - -Wincomplete-record-updates
+  - -Wpartial-fields
+  - -Werror=missing-home-modules
+  - -Wmissing-home-modules
+  - -Widentities
+  - -Wredundant-constraints
+  - -Wmissing-export-lists
