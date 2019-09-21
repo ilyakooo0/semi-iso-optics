@@ -1,5 +1,5 @@
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
+
 {- |
 Module      :  Data.Profunctor.Exposed
 Description :  Exposes Kleisli category structure beneath a profunctor.

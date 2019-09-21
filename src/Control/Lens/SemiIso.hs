@@ -100,9 +100,8 @@ module Control.Lens.SemiIso (
     bifoldl1_
     ) where
 
-import Control.Arrow (Kleisli(..))
+import Control.Arrow
 import Control.Category
-import Control.Category.Structures
 import Control.Lens.Internal.SemiIso
 import Control.Lens.Iso
 import Control.Tuple.Morph
@@ -148,7 +147,8 @@ instance Category ReifiedSemiIso' where
     id = ReifiedSemiIso' id
     ReifiedSemiIso' f . ReifiedSemiIso' g = ReifiedSemiIso' (g . f)
 
-instance Products ReifiedSemiIso' where
+instance Arrow ReifiedSemiIso' where
+    arr f = ReifiedSemiIso' $ semiIso (Right . f) (const $ Left "oh no")
     -- TODO: pattern synonyms dont work here for some reason
     first (ReifiedSemiIso' ai) = withSemiIso ai $ \f g ->
         ReifiedSemiIso' $ cloneSemiIso $
@@ -165,7 +165,7 @@ instance Products ReifiedSemiIso' where
             semiIso (runKleisli $ Kleisli f *** Kleisli f')
                     (runKleisli $ Kleisli g *** Kleisli g')
 
-instance Coproducts ReifiedSemiIso' where
+instance ArrowChoice ReifiedSemiIso' where
     left (ReifiedSemiIso' ai) = withSemiIso ai $ \f g ->
         ReifiedSemiIso' $ cloneSemiIso $
             semiIso (runKleisli $ left $ Kleisli f)
@@ -181,18 +181,19 @@ instance Coproducts ReifiedSemiIso' where
             semiIso (runKleisli $ Kleisli f +++ Kleisli f')
                     (runKleisli $ Kleisli g +++ Kleisli g')
 
-instance CatPlus ReifiedSemiIso' where
-    cempty = ReifiedSemiIso' $ alwaysFailing "cempty"
+instance ArrowZero ReifiedSemiIso' where
+    zeroArrow = ReifiedSemiIso' $ alwaysFailing "zeroArrow"
 
-    ReifiedSemiIso' ai /+/ ReifiedSemiIso' ai' = ReifiedSemiIso' $
+instance ArrowPlus ReifiedSemiIso' where
+    ReifiedSemiIso' ai <+> ReifiedSemiIso' ai' = ReifiedSemiIso' $
         withSemiIso ai $ \f g -> withSemiIso ai' $ \f' g' ->
-            semiIso (runKleisli $ Kleisli f /+/ Kleisli f')
-                    (runKleisli $ Kleisli g /+/ Kleisli g')
+            semiIso (runKleisli $ Kleisli f <+> Kleisli f')
+                    (runKleisli $ Kleisli g <+> Kleisli g')
 
 -- | Constructs a semi isomorphism from a pair of functions that can
 -- fail with an error message.
 semiIso :: (s -> Either String a) -> (b -> Either String t) -> SemiIso s t a b
-semiIso sa bt = merge . dimap sa (sequenceA . fmap bt) . expose
+semiIso sa bt = merge . dimap sa (traverse bt) . expose
 
 -- | Clones a semi-iso.
 cloneSemiIso :: ASemiIso s t a b -> SemiIso s t a b
@@ -307,7 +308,7 @@ elimFirst ai = swapped . elimSecond ai
 -- | Uses an @SemiIso b ()@ to construct a @SemiIso (a, b) a@,
 -- i.e. eliminates the second pair element.
 elimSecond :: ASemiIso' s () -> SemiIso' (t, s) t
-elimSecond ai = runSemiIso (id *** reifySemiIso ai) . rev unit
+elimSecond ai = runSemiIso (second $ reifySemiIso ai) . rev unit
 
 -- | Transforms the semi-iso so that applying it in both directions never fails,
 -- but instead catches any errors and returns them as an @Either String a@.

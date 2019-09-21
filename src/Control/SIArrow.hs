@@ -33,20 +33,18 @@ module Control.SIArrow (
     sireplicate_
     ) where
 
-import Control.Arrow (Kleisli(..))
+import Control.Arrow
 import Control.Category
-import Control.Category.Structures
 import Control.Lens.Cons
 import Control.Lens.Empty
 import Control.Lens.Iso
 import Control.Lens.SemiIso
 import Control.Monad
 import Control.Tuple.Morph
-import Data.Semigroupoid.Dual
 import Prelude hiding (id, (.))
 
-infixr 1 ^>>, ^<<, #>>, #<<
-infixr 1 >>^, <<^, >>#, <<#
+infixr 1 #>>, #<<
+infixr 1 >>#, <<#
 infixl 4 /$/, /$~
 infixl 5 /*/, */, /*
 infixl 3 /?/
@@ -59,7 +57,7 @@ infixl 3 /?/
 --
 -- The category @cat@ should contain @SemiIso@ as a sort of
 -- \"subcategory of pure computations\".
-class (Products cat, Coproducts cat, CatPlus cat) => SIArrow cat where
+class (Arrow cat, ArrowChoice cat, ArrowPlus cat) => SIArrow cat where
     -- | Allows you to lift a SemiIso into @cat@. The resulting arrow should be
     -- in some sense minimal or \"pure\", similiar to 'pure', 'return' and
     -- 'arr' from "Control.Category".
@@ -87,7 +85,7 @@ class (Products cat, Coproducts cat, CatPlus cat) => SIArrow cat where
 
     -- | @simany v@ repeats @v@ as long as possible.
     simany :: cat () b -> cat () [b]
-    simany v = sisome v /+/ sipure _Empty
+    simany v = sisome v <+> sipure _Empty
 
     {-# MINIMAL (siarr | sipure), sibind #-}
 
@@ -95,31 +93,11 @@ instance MonadPlus m => SIArrow (Kleisli m) where
     siarr ai = Kleisli $ either fail return . apply ai
     sibind ai = Kleisli $ \a -> either fail (($ a) . runKleisli) $ apply ai a
 
-instance SIArrow cat => SIArrow (Dual cat) where
-    siarr = Dual . sipure
-    sibind ai = Dual $ sibind (iso id getDual . rev ai . iso getDual id)
-
 instance SIArrow ReifiedSemiIso' where
     siarr = reifySemiIso
     sibind ai = ReifiedSemiIso' $
         semiIso (\a -> apply ai a >>= flip apply a . runSemiIso)
                 (\b -> unapply ai b >>= flip unapply b . runSemiIso)
-
--- | Composes a SemiIso with an arrow.
-(^>>) :: SIArrow cat => ASemiIso' a b -> cat b c -> cat a c
-f ^>> a = a . siarr f
-
--- | Composes an arrow with a SemiIso.
-(>>^) :: SIArrow cat => cat a b -> ASemiIso' b c -> cat a c
-a >>^ f = siarr f . a
-
--- | Composes a SemiIso with an arrow, backwards.
-(^<<) :: SIArrow cat => ASemiIso' b c -> cat a b -> cat a c
-f ^<< a = siarr f . a
-
--- | Composes an arrow with a SemiIso, backwards.
-(<<^) :: SIArrow cat => cat b c -> ASemiIso' a b -> cat a c
-a <<^ f = a . siarr f
 
 -- | Composes a reversed SemiIso with an arrow.
 (#>>) :: SIArrow cat => ASemiIso' b a -> cat b c -> cat a c
@@ -171,7 +149,7 @@ ai /$<~> h = cloneSemiIso ai . reorderMorphed /$/ h
 --
 -- The uncurried analogue of '<*>'.
 (/*/) :: SIArrow cat => cat () b -> cat () c -> cat () (b, c)
-a /*/ b = unit ^>> (a *** b)
+a /*/ b = siarr unit >>> (a *** b)
 
 -- | The product of two arrows, where the second one has no input and no output
 -- (but can have side effects), with duplicate units removed. Side effect are
@@ -195,7 +173,7 @@ sifail = siarr . alwaysFailing
 
 -- | Provides an error message in the case of failure.
 (/?/) :: SIArrow cat => cat a b -> String -> cat a b
-f /?/ msg = f /+/ sifail msg
+f /?/ msg = f <+> sifail msg
 
 -- | Equivalent of 'sequence'.
 sisequence :: SIArrow cat => [cat () a] -> cat () [a]
