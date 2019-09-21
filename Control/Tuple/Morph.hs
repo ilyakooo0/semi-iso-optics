@@ -83,11 +83,6 @@ pattern (:+) a b = HCons a b
 
 -- ## Taking
 
-type family Take (n :: Nat) (aa :: [k]) :: [k] where
-    Take 'Z a = '[]
-    Take n '[] = '[]
-    Take ('S n) (a ': aa) = a ': Take n aa
-
 class TakeableList (n :: Nat) aa bb | n aa -> bb where
     hTake :: Proxy n -> HList aa -> HList bb
 
@@ -99,11 +94,6 @@ instance (TakeableList n aa bb', bb ~ (a ': bb'))
     hTake (Proxy :: Proxy ('S n)) (a :+ aa) = a :+ hTake @n Proxy aa
 
 -- ## Dropping
-
-type family Drop (n :: Nat) (aa :: [k]) :: [k] where
-    Drop 'Z a = a
-    Drop n '[] = '[]
-    Drop ('S n) (a ': aa) = Drop n aa
 
 class DroppableList (n :: Nat) (aa :: [*]) (bb :: [*]) | n aa -> bb where
     hDrop :: Proxy n -> HList aa -> HList bb
